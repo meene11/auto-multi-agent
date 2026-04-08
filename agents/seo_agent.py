@@ -1,7 +1,6 @@
 import json
 import time
-import anthropic
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from config.settings import settings
@@ -13,9 +12,9 @@ def run_seo(draft: str) -> dict:
     블로그 초안을 SEO+GEO 분석하고 개선한다.
     반환값: { seo_score, issues, optimized_content, title, tags }
     """
-    llm = ChatAnthropic(
-        model="claude-sonnet-4-6",
-        api_key=settings.anthropic_api_key,
+    llm = ChatOpenAI(
+        model="gpt-4o-mini",
+        api_key=settings.openai_api_key,
         temperature=0,
     )
 
@@ -35,14 +34,15 @@ def run_seo(draft: str) -> dict:
             response = llm.invoke(messages)
             content = response.content
             break
-        except anthropic.APIStatusError as e:
-            if e.status_code != 529:
+        except Exception as e:
+            if "429" in str(e) or "rate" in str(e).lower():
+                wait = (attempt + 1) * 10
+                print(f"  API 한도 초과, {wait}초 후 재시도... ({attempt + 1}/3)")
+                time.sleep(wait)
+            else:
                 raise
-            wait = (attempt + 1) * 10
-            print(f"  Anthropic 서버 과부하, {wait}초 후 재시도... ({attempt + 1}/3)")
-            time.sleep(wait)
     else:
-        raise RuntimeError("Anthropic API 재시도 3회 실패 (과부하)")
+        raise RuntimeError("OpenAI API 재시도 3회 실패")
 
     # JSON 파싱
     try:

@@ -1,5 +1,5 @@
 import time
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.prebuilt import create_react_agent
 
@@ -10,9 +10,9 @@ from tools.search_tools import search_web
 
 
 def run_research(repo_url: str) -> str:
-    llm = ChatAnthropic(
-        model="claude-sonnet-4-6",
-        api_key=settings.anthropic_api_key,
+    llm = ChatOpenAI(
+        model="gpt-4o-mini",
+        api_key=settings.openai_api_key,
         temperature=0,
     )
 
@@ -39,11 +39,11 @@ def run_research(repo_url: str) -> str:
             result = agent.invoke({"messages": messages})
             return result["messages"][-1].content
         except Exception as e:
-            if "529" in str(e) or "overloaded" in str(e).lower():
+            if "429" in str(e) or "rate" in str(e).lower():
                 wait = (attempt + 1) * 10
-                print(f"  Anthropic 서버 과부하, {wait}초 후 재시도... ({attempt + 1}/3)")
+                print(f"  API 한도 초과, {wait}초 후 재시도... ({attempt + 1}/3)")
                 time.sleep(wait)
             else:
                 raise
 
-    raise RuntimeError("Anthropic API 재시도 3회 실패 (과부하)")
+    raise RuntimeError("OpenAI API 재시도 3회 실패")
