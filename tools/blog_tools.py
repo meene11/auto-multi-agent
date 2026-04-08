@@ -4,8 +4,26 @@ from langchain_core.tools import tool
 from config.settings import settings
 
 
-def _to_english_slug(tag: str) -> str:
-    """한글 태그를 영문 slug로 변환한다."""
+def _to_devto_tag(tag: str) -> str:
+    """dev.to용 태그 변환 — 영문+숫자만 허용 (하이픈 불가)"""
+    tag_map = {
+        "AI": "ai", "인공지능": "ai", "머신러닝": "machinelearning",
+        "딥러닝": "deeplearning", "파이썬": "python", "파이프라인": "pipeline",
+        "데이터": "data", "자동화": "automation", "뉴스": "news",
+        "분석": "analytics", "감성": "sentiment", "트렌드": "trending",
+        "시각화": "dataviz", "크롤링": "webscraping", "백엔드": "backend",
+        "프론트엔드": "frontend", "데이터베이스": "database", "클라우드": "cloud",
+        "서버": "server", "API": "api", "개발": "dev", "프로젝트": "project",
+    }
+    for kor, eng in tag_map.items():
+        tag = tag.replace(kor, eng)
+    # 영문+숫자만 남기고 소문자화
+    result = re.sub(r"[^a-zA-Z0-9]", "", tag).lower()
+    return result or "dev"
+
+
+def _to_hashnode_slug(tag: str) -> str:
+    """Hashnode용 태그 slug 변환 — 영문+숫자+하이픈 허용"""
     tag_map = {
         "AI": "ai", "인공지능": "ai", "머신러닝": "machine-learning",
         "딥러닝": "deep-learning", "파이썬": "python", "파이프라인": "pipeline",
@@ -17,7 +35,6 @@ def _to_english_slug(tag: str) -> str:
     }
     for kor, eng in tag_map.items():
         tag = tag.replace(kor, eng)
-    # 영문/숫자/하이픈만 남기기
     slug = re.sub(r"[^a-zA-Z0-9\s-]", "", tag)
     slug = slug.strip().lower().replace(" ", "-")
     slug = re.sub(r"-+", "-", slug)
@@ -39,7 +56,7 @@ def post_to_devto(title: str, content: str, tags: list[str], published: bool = T
         "article": {
             "title": title,
             "body_markdown": content,
-            "tags": [_to_english_slug(t) for t in tags[:4]],
+            "tags": [_to_devto_tag(t) for t in tags[:4]],
             "published": published,
         }
     }
@@ -64,7 +81,7 @@ def post_to_hashnode(title: str, content: str, tags: list[str]) -> str:
         "Authorization": settings.hashnode_api_key,
         "Content-Type": "application/json",
     }
-    tag_list = [{"name": _to_english_slug(t), "slug": _to_english_slug(t)} for t in tags[:5]]
+    tag_list = [{"name": _to_hashnode_slug(t), "slug": _to_hashnode_slug(t)} for t in tags[:5]]
     query = """
     mutation PublishPost($input: PublishPostInput!) {
       publishPost(input: $input) {
