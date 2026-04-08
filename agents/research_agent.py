@@ -1,3 +1,4 @@
+import time
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.prebuilt import create_react_agent
@@ -33,5 +34,16 @@ def run_research(repo_url: str) -> str:
 """)
     ]
 
-    result = agent.invoke({"messages": messages})
-    return result["messages"][-1].content
+    for attempt in range(3):
+        try:
+            result = agent.invoke({"messages": messages})
+            return result["messages"][-1].content
+        except Exception as e:
+            if "529" in str(e) or "overloaded" in str(e).lower():
+                wait = (attempt + 1) * 10
+                print(f"  Anthropic 서버 과부하, {wait}초 후 재시도... ({attempt + 1}/3)")
+                time.sleep(wait)
+            else:
+                raise
+
+    raise RuntimeError("Anthropic API 재시도 3회 실패 (과부하)")
