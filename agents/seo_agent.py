@@ -1,6 +1,6 @@
 import json
 import time
-from anthropic import OverloadedError
+import anthropic
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -35,7 +35,9 @@ def run_seo(draft: str) -> dict:
             response = llm.invoke(messages)
             content = response.content
             break
-        except OverloadedError:
+        except anthropic.APIStatusError as e:
+            if e.status_code != 529:
+                raise
             wait = (attempt + 1) * 10
             print(f"  Anthropic 서버 과부하, {wait}초 후 재시도... ({attempt + 1}/3)")
             time.sleep(wait)
