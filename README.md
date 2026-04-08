@@ -452,7 +452,7 @@ jobs:
 | 프로젝트 | 설명 | 링크 |
 |---------|------|------|
 | it-news-pipeline | RSS 기반 IT 뉴스 수집 + AI 분석 파이프라인 (1차 포스팅 소재) | [GitHub](https://github.com/meene11/it-news-pipeline) · [배포](https://it-news-pipeline.vercel.app) |
-| my_wallet_pattern_v2 | 지출 패턴 분석 풀스택 앱 | [GitHub](https://github.com/meene11/my_wallet_pattern_v2) |
+| my_wallet_pattern_v2 | 지출 패턴 분석 풀스택 앱 | [GitHub](https://github.com/meene11/my_wallet_pattern_v2) |  [배포](https://my-wallet-pattern-v2.vercel.app) |
 
 ---
 
