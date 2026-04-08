@@ -1,0 +1,41 @@
+name: Auto Blog Publish
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'   # 매주 월요일 오전 9시 KST (UTC 00:00)
+  workflow_dispatch:        # 수동 실행 가능
+    inputs:
+      repo_url:
+        description: '분석할 GitHub 레포지토리 URL (비워두면 기본값 사용)'
+        required: false
+        default: 'https://github.com/meene11/it-news-pipeline'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 3.11 세팅
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 패키지 설치
+        run: pip install -r requirements.txt
+
+      - name: 멀티에이전트 파이프라인 실행
+        run: |
+          REPO_URL="${{ github.event.inputs.repo_url || 'https://github.com/meene11/it-news-pipeline' }}"
+          echo "대상 레포: $REPO_URL"
+          python main.py --repo "$REPO_URL"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEVTO_API_KEY: ${{ secrets.DEVTO_API_KEY }}
+          HASHNODE_API_KEY: ${{ secrets.HASHNODE_API_KEY }}
+          HASHNODE_PUBLICATION_ID: ${{ secrets.HASHNODE_PUBLICATION_ID }}
+          TARGET_REPO_URL: ${{ github.event.inputs.repo_url || 'https://github.com/meene11/it-news-pipeline' }}
+          SEO_SCORE_THRESHOLD: '70'
