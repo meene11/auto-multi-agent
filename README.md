@@ -353,40 +353,40 @@ python main.py --platform all   # 기본값
 
 ## 블로그 플랫폼 연동
 
-### 티스토리 API
+### dev.to API
 
-OAuth 2.0 기반 REST API를 사용한다.
+API Key 기반 REST API로 가장 간단하게 연동 가능하다.
 
-1. [티스토리 앱 등록](https://www.tistory.com/guide/api/manage/register) 에서 앱 생성
-2. `App ID`, `Secret Key` 발급 후 Access Token 획득
-3. `.env`에 `TISTORY_ACCESS_TOKEN`, `TISTORY_BLOG_NAME` 등록
-
-```
-POST https://www.tistory.com/apis/post/write
-  - access_token
-  - blogName
-  - title
-  - content (HTML)
-  - tag
-  - visibility (3: 발행)
-```
-
-### 네이버 블로그 Open API
-
-네이버 로그인 API (OAuth 2.0) 기반으로 포스팅한다.
-
-1. [네이버 개발자 센터](https://developers.naver.com/apps/#/register) 에서 앱 등록
-2. **블로그 Write** 권한 활성화
-3. `Client ID`, `Client Secret` 발급 후 `.env`에 등록
+1. [dev.to/settings/extensions](https://dev.to/settings/extensions) 접속
+2. **DEV Community API Keys** 섹션에서 키 생성
+3. `.env`에 `DEVTO_API_KEY` 등록
 
 ```
-POST https://openapi.naver.com/blog/writePost.json
-  - title
-  - contents (HTML)
-  - categoryNo
+POST https://dev.to/api/articles
+  Headers: api-key: YOUR_API_KEY
+  Body: {
+    article: {
+      title,
+      body_markdown,  ← 마크다운 그대로 사용 가능
+      tags,           ← 최대 4개
+      published       ← true: 즉시 발행, false: 임시저장
+    }
+  }
 ```
 
-> Access Token 유효 시간이 1시간이므로 Refresh Token을 이용한 자동 갱신 로직이 포함되어 있다.
+### Hashnode API
+
+GraphQL 기반 API를 사용한다.
+
+1. [hashnode.com/settings/developer](https://hashnode.com/settings/developer) 에서 API Key 생성
+2. 내 블로그 **Publication ID** 확인 (블로그 대시보드 → Settings)
+3. `.env`에 `HASHNODE_API_KEY`, `HASHNODE_PUBLICATION_ID` 등록
+
+```
+POST https://gql.hashnode.com
+  Headers: Authorization: YOUR_API_KEY
+  Body: GraphQL mutation publishPost
+```
 
 ---
 
@@ -418,11 +418,11 @@ jobs:
       - name: Run multi-agent pipeline
         run: python main.py
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TISTORY_ACCESS_TOKEN: ${{ secrets.TISTORY_ACCESS_TOKEN }}
-          TISTORY_BLOG_NAME: ${{ secrets.TISTORY_BLOG_NAME }}
-          NAVER_ACCESS_TOKEN: ${{ secrets.NAVER_ACCESS_TOKEN }}
+          DEVTO_API_KEY: ${{ secrets.DEVTO_API_KEY }}
+          HASHNODE_API_KEY: ${{ secrets.HASHNODE_API_KEY }}
+          HASHNODE_PUBLICATION_ID: ${{ secrets.HASHNODE_PUBLICATION_ID }}
 ```
 
 ---

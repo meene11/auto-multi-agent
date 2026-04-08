@@ -1,4 +1,4 @@
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -9,9 +9,9 @@ from tools.search_tools import search_web
 
 
 def build_research_agent() -> AgentExecutor:
-    llm = ChatAnthropic(
-        model="claude-sonnet-4-6",
-        api_key=settings.anthropic_api_key,
+    llm = ChatOpenAI(
+        model="gpt-4o-mini",
+        api_key=settings.openai_api_key,
         temperature=0,
     )
 

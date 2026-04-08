@@ -2,15 +2,13 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    anthropic_api_key: str
+    openai_api_key: str
     github_token: str = ""
 
-    tistory_access_token: str = ""
-    tistory_blog_name: str = ""
+    devto_api_key: str = ""
 
-    naver_client_id: str = ""
-    naver_client_secret: str = ""
-    naver_access_token: str = ""
+    hashnode_api_key: str = ""
+    hashnode_publication_id: str = ""
 
     target_repo_url: str = "https://github.com/meene11/it-news-pipeline"
     seo_score_threshold: int = 70
