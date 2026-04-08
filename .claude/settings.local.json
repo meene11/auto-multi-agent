@@ -4,7 +4,9 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:api.github.com)",
-      "Bash(pip show:*)"
+      "Bash(pip show:*)",
+      "Bash(claude config:*)",
+      "Skill(update-config)"
     ]
   }
 }
