@@ -1,6 +1,7 @@
+import time
+from anthropic import OverloadedError
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
-from langgraph.prebuilt import create_react_agent
 
 from config.settings import settings
 from config.prompts import WRITER_AGENT_SYSTEM_PROMPT
@@ -10,10 +11,8 @@ def run_writer(research_result: str) -> str:
     llm = ChatAnthropic(
         model="claude-sonnet-4-6",
         api_key=settings.anthropic_api_key,
-        temperature=0.7,  # 글쓰기는 약간의 창의성 허용
+        temperature=0.7,
     )
-
-    agent = create_react_agent(llm, tools=[])
 
     messages = [
         SystemMessage(content=WRITER_AGENT_SYSTEM_PROMPT),
@@ -28,5 +27,13 @@ def run_writer(research_result: str) -> str:
 """)
     ]
 
-    result = agent.invoke({"messages": messages})
-    return result["messages"][-1].content
+    for attempt in range(3):
+        try:
+            response = llm.invoke(messages)
+            return response.content
+        except OverloadedError:
+            wait = (attempt + 1) * 10
+            print(f"  Anthropic 서버 과부하, {wait}초 후 재시도... ({attempt + 1}/3)")
+            time.sleep(wait)
+
+    raise RuntimeError("Anthropic API 재시도 3회 실패 (과부하)")
