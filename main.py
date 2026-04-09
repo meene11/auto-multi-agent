@@ -1,24 +1,16 @@
-import argparse
 from config.settings import settings
 
 
 def main():
-    parser = argparse.ArgumentParser(description="auto-multi-agent: 블로그 자동 발행 멀티에이전트")
-    parser.add_argument(
-        "--repo",
-        type=str,
-        default=settings.target_repo_url,
-        help="분석할 GitHub 레포지토리 URL",
-    )
-    args = parser.parse_args()
-
     print(f"\n{'='*60}")
-    print(f"  auto-multi-agent")
-    print(f"  대상 레포: {args.repo}")
+    print(f"  auto-multi-agent - IT 뉴스 자동 블로그 발행")
+    print(f"  Supabase: {settings.supabase_url}")
+    print(f"  테이블  : {settings.supabase_table}")
+    print(f"  기사 수 : {settings.articles_per_run}개")
     print(f"{'='*60}\n")
 
     from orchestrator.workflow import run_pipeline
-    final_state = run_pipeline(args.repo)
+    final_state = run_pipeline()
 
     print(f"\n{'='*60}")
     print("  파이프라인 완료!")

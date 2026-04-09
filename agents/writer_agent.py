@@ -16,13 +16,14 @@ def run_writer(research_result: str) -> str:
     messages = [
         SystemMessage(content=WRITER_AGENT_SYSTEM_PROMPT),
         HumanMessage(content=f"""
-아래 리서치 결과를 바탕으로 기술 블로그 포스팅을 작성해주세요.
+아래는 Supabase에서 가져온 최신 IT 뉴스 기사들입니다.
+각 기사의 제목과 내용을 읽고, 독자가 핵심을 빠르게 파악할 수 있는 IT 뉴스 요약 블로그 포스팅을 작성해주세요.
 
-리서치 결과:
+기사 목록:
 {research_result}
 
-위 내용을 참고해서 개발자 독자를 위한 한국어 기술 블로그 포스팅을 마크다운 형식으로 작성해주세요.
-제목, 본문, 태그까지 모두 포함해주세요.
+위 기사들을 바탕으로 한국어 IT 뉴스 요약 블로그 포스팅을 마크다운 형식으로 작성해주세요.
+제목, 각 기사 요약, 한 줄 정리, 태그까지 모두 포함해주세요.
 """)
     ]
 

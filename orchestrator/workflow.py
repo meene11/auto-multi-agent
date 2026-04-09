@@ -6,9 +6,9 @@ from orchestrator.quality_gates import seo_routing
 
 def research_node(state: BlogState) -> BlogState:
     from agents.research_agent import run_research
-    print("\n[1/4] Research Agent 실행 중...")
-    result = run_research(state["topic"])
-    return {**state, "research_result": result}
+    print("\n[1/4] Research Agent 실행 중... (Supabase 기사 조회)")
+    articles, formatted = run_research()
+    return {**state, "articles": articles, "research_result": formatted}
 
 
 def write_node(state: BlogState) -> BlogState:
@@ -56,18 +56,15 @@ def publish_node(state: BlogState) -> BlogState:
 def build_workflow() -> StateGraph:
     graph = StateGraph(BlogState)
 
-    # 노드 등록
     graph.add_node("research", research_node)
     graph.add_node("write", write_node)
     graph.add_node("seo", seo_node)
     graph.add_node("publish", publish_node)
 
-    # 엣지 연결
     graph.set_entry_point("research")
     graph.add_edge("research", "write")
     graph.add_edge("write", "seo")
 
-    # SEO 조건 분기
     graph.add_conditional_edges(
         "seo",
         seo_routing,
@@ -82,12 +79,12 @@ def build_workflow() -> StateGraph:
     return graph.compile()
 
 
-def run_pipeline(repo_url: str) -> BlogState:
+def run_pipeline() -> BlogState:
     """전체 파이프라인 실행 진입점"""
     workflow = build_workflow()
 
     initial_state: BlogState = {
-        "topic": repo_url,
+        "articles": [],
         "research_result": "",
         "draft": "",
         "seo_score": 0,

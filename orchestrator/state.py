@@ -2,8 +2,8 @@ from typing import TypedDict
 
 
 class BlogState(TypedDict):
-    topic: str                  # 입력: GitHub 레포 URL
-    research_result: str        # Research Agent 출력
+    articles: list[dict]        # Supabase에서 가져온 기사 목록
+    research_result: str        # Research Agent 출력 (기사 포맷팅 결과)
     draft: str                  # Writer Agent 출력
     seo_score: int              # SEO Agent 점수
     seo_issues: list[str]       # SEO 개선 사항
