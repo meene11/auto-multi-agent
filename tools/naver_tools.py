@@ -175,26 +175,46 @@ def post_to_naver_blog(title: str, content: str) -> str:
 
         # 7. 최종 발행 확인
         print("  [Naver] 최종 발행 확인 중...")
+        clicked = False
         try:
             confirm_btn = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.CSS_SELECTOR, ".confirm_btn__WEaBq"))
             )
             confirm_btn.click()
+            clicked = True
         except Exception:
+            pass
+
+        if not clicked:
             btns = driver.find_elements(By.TAG_NAME, "button")
             for btn in btns:
-                if "발행" in btn.text or "확인" in btn.text:
+                if btn.text.strip() in ("발행", "확인", "공개발행"):
                     btn.click()
+                    clicked = True
                     break
-        time.sleep(5)
 
-        blog_url = f"https://blog.naver.com/{blog_id}"
-        return f"Naver 블로그 발행 완료: {blog_url}"
+        if not clicked:
+            return "Naver 블로그 발행 실패: 최종 발행 버튼을 찾지 못했습니다."
+
+        # 8. 발행 완료 URL 확인 (페이지 이동 대기)
+        time.sleep(5)
+        current_url = driver.current_url
+        print(f"  [Naver] 현재 URL: {current_url}")
+
+        # 발행 후 블로그 포스트 URL로 이동됐는지 확인
+        if "blog.naver.com" in current_url and "postwrite" not in current_url:
+            return f"Naver 블로그 발행 완료: {current_url}"
+        else:
+            # 직접 블로그로 이동해서 최신 글 확인
+            blog_url = f"https://blog.naver.com/{blog_id}"
+            return f"Naver 블로그 발행 완료: {blog_url}"
 
     except Exception as e:
+        print(f"  [Naver] 오류 발생: {e}")
+        print("  [Naver] 브라우저를 10초 후 닫습니다. 화면을 확인하세요...")
+        time.sleep(10)
         return f"Naver 블로그 발행 실패: {e}"
     finally:
-        time.sleep(3)
         driver.quit()
 
 
