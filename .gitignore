@@ -10,3 +10,4 @@ __pycache__/
 dist/
 build/
 published_ids.json
+docs/personal_notes.md
