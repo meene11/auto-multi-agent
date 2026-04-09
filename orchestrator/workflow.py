@@ -45,10 +45,12 @@ def seo_node(state: BlogState) -> BlogState:
 def publish_node(state: BlogState) -> BlogState:
     from agents.publisher_agent import run_publisher
     print("\n[4/4] Publisher Agent 실행 중...")
+    article_ids = [a["id"] for a in state.get("articles", []) if a.get("id")]
     result = run_publisher(
         title=state["title"],
         content=state["optimized_content"],
         tags=state["tags"],
+        article_ids=article_ids,
     )
     return {**state, "published_urls": result}
 

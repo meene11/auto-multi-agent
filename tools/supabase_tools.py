@@ -1,5 +1,27 @@
+import json
 import httpx
+from pathlib import Path
 from config.settings import settings
+
+PUBLISHED_IDS_FILE = Path(__file__).parent.parent / "published_ids.json"
+
+
+def _load_published_ids() -> set[int]:
+    if PUBLISHED_IDS_FILE.exists():
+        return set(json.loads(PUBLISHED_IDS_FILE.read_text(encoding="utf-8")))
+    return set()
+
+
+def _save_published_ids(ids: set[int]) -> None:
+    PUBLISHED_IDS_FILE.write_text(json.dumps(sorted(ids)), encoding="utf-8")
+
+
+def mark_as_published(article_ids: list[int]) -> None:
+    """발행 완료된 기사 ID를 로컬 파일에 기록한다."""
+    ids = _load_published_ids()
+    ids.update(article_ids)
+    _save_published_ids(ids)
+    print(f"  발행 기록 저장 완료 ({len(article_ids)}개 추가, 누적 {len(ids)}개)")
 
 
 def fetch_articles_from_supabase(limit: int = 5) -> list[dict]:
@@ -20,13 +42,25 @@ def fetch_articles_from_supabase(limit: int = 5) -> list[dict]:
         "limit": str(limit),
     }
 
+    # 이미 발행한 기사보다 넉넉하게 가져온 후 필터링
+    published_ids = _load_published_ids()
+    fetch_limit = limit + len(published_ids) if published_ids else limit
+    params["limit"] = str(min(fetch_limit, 100))  # 최대 100개
+
     response = httpx.get(url, headers=headers, params=params, timeout=15)
-    if response.status_code == 200:
-        articles = response.json()
-        if not articles:
-            raise RuntimeError(f"Supabase 테이블 '{settings.supabase_table}'에 기사가 없습니다.")
-        return articles
-    raise RuntimeError(f"Supabase 조회 실패 (status: {response.status_code}): {response.text}")
+    if response.status_code != 200:
+        raise RuntimeError(f"Supabase 조회 실패 (status: {response.status_code}): {response.text}")
+
+    all_articles = response.json()
+
+    # 이미 발행한 기사 제외
+    new_articles = [a for a in all_articles if a.get("id") not in published_ids]
+
+    if not new_articles:
+        raise RuntimeError("발행할 새 기사가 없습니다. 모든 최근 기사가 이미 발행됐습니다.")
+
+    print(f"  전체 {len(all_articles)}개 중 기발행 {len(published_ids)}개 제외 -> {len(new_articles)}개 신규")
+    return new_articles[:limit]
 
 
 def format_articles_for_research(articles: list[dict]) -> str:
