@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     supabase_key: str = ""
     supabase_table: str = "news_list"
 
+    naver_id: str = ""
+    naver_password: str = ""
+    naver_blog_id: str = ""
+
     devto_api_key: str = ""
 
     hashnode_api_key: str = ""

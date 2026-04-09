@@ -20,6 +20,7 @@ def main():
     print(f"  태그      : {final_state['tags']}")
     print(f"  dev.to    : {final_state['published_urls'].get('devto', '-')}")
     print(f"  Hashnode  : {final_state['published_urls'].get('hashnode', '-')}")
+    print(f"  Naver     : {final_state['published_urls'].get('naver', '-')}")
 
 
 if __name__ == "__main__":
