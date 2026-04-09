@@ -1,42 +1,76 @@
-import time
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage
-
-from config.settings import settings
-from config.prompts import WRITER_AGENT_SYSTEM_PROMPT
+from datetime import datetime
 
 
-def run_writer(research_result: str) -> str:
-    llm = ChatOpenAI(
-        model="gpt-4o-mini",
-        api_key=settings.openai_api_key,
-        temperature=0.7,
-    )
+def run_writer(articles: list[dict]) -> dict:
+    """
+    Supabase 기사 목록을 Python 템플릿으로 블로그 포스팅으로 변환한다.
+    OpenAI 호출 없음 -> 비용 $0.
+    """
+    today = datetime.now().strftime("%Y년 %m월 %d일")
+    title = f"[IT 뉴스 요약] {today} 주요 기사 {len(articles)}선"
 
-    messages = [
-        SystemMessage(content=WRITER_AGENT_SYSTEM_PROMPT),
-        HumanMessage(content=f"""
-아래는 Supabase에서 가져온 최신 IT 뉴스 기사들입니다.
-각 기사의 제목과 내용을 읽고, 독자가 핵심을 빠르게 파악할 수 있는 IT 뉴스 요약 블로그 포스팅을 작성해주세요.
+    lines = []
+    lines.append(f"# {title}\n")
+    lines.append(f"> 오늘의 주요 IT 뉴스 {len(articles)}개를 빠르게 정리했습니다.\n")
 
-기사 목록:
-{research_result}
+    for i, article in enumerate(articles, 1):
+        art_title = article.get("title") or "제목 없음"
+        summary = article.get("summary") or ""
+        source = article.get("source") or ""
+        url = article.get("url") or ""
+        sentiment = article.get("sentiment") or ""
 
-위 기사들을 바탕으로 한국어 IT 뉴스 요약 블로그 포스팅을 마크다운 형식으로 작성해주세요.
-제목, 각 기사 요약, 한 줄 정리, 태그까지 모두 포함해주세요.
-""")
-    ]
+        lines.append(f"## {i}. {art_title}\n")
+        if summary:
+            lines.append(f"{summary}\n")
+        if sentiment:
+            sentiment_label = {"positive": "긍정", "negative": "부정", "neutral": "중립"}.get(sentiment, sentiment)
+            lines.append(f"**감성 분석:** {sentiment_label}\n")
+        if source and url:
+            lines.append(f"출처: [{source}]({url})\n")
+        elif url:
+            lines.append(f"[원문 보기]({url})\n")
+        lines.append("")
 
-    for attempt in range(3):
-        try:
-            response = llm.invoke(messages)
-            return response.content
-        except Exception as e:
-            if "429" in str(e) or "rate" in str(e).lower():
-                wait = (attempt + 1) * 10
-                print(f"  API 한도 초과, {wait}초 후 재시도... ({attempt + 1}/3)")
-                time.sleep(wait)
-            else:
-                raise
+    lines.append("---\n")
+    lines.append("*본 포스팅은 최신 IT 뉴스를 자동으로 수집·요약하여 발행됩니다.*\n")
 
-    raise RuntimeError("OpenAI API 재시도 3회 실패")
+    content = "\n".join(lines)
+    tags = _extract_tags(articles)
+
+    return {
+        "title": title,
+        "content": content,
+        "tags": tags,
+    }
+
+
+def _extract_tags(articles: list[dict]) -> list[str]:
+    """기사 제목에서 키워드를 추출해 태그를 생성한다."""
+    keyword_map = {
+        "AI": "AI", "인공지능": "AI", "반도체": "반도체", "삼성": "삼성",
+        "애플": "애플", "구글": "구글", "메타": "메타", "엔비디아": "엔비디아",
+        "비트코인": "비트코인", "암호화폐": "암호화폐", "스타트업": "스타트업",
+        "클라우드": "클라우드", "보안": "보안", "로봇": "로봇", "전기차": "전기차",
+        "테슬라": "테슬라", "오픈AI": "AI", "챗GPT": "AI", "LLM": "AI",
+        "네이버": "네이버", "카카오": "카카오", "SKT": "SKT", "KT": "KT",
+    }
+
+    found = []
+    all_text = " ".join(a.get("title", "") + " " + a.get("summary", "") for a in articles)
+
+    for keyword, tag in keyword_map.items():
+        if keyword in all_text and tag not in found:
+            found.append(tag)
+        if len(found) >= 4:
+            break
+
+    # 기본 태그로 채우기
+    defaults = ["IT뉴스", "테크", "뉴스요약", "technology"]
+    for d in defaults:
+        if len(found) >= 4:
+            break
+        if d not in found:
+            found.append(d)
+
+    return found[:4]
