@@ -24,30 +24,32 @@ def write_node(state: BlogState) -> BlogState:
     }
 
 
-def publish_node(state: BlogState) -> BlogState:
-    from agents.publisher_agent import run_publisher
-    from agents.seo_agent import run_seo
-    # 간단 SEO 체크
-    seo = run_seo(state["title"], state["content"], state["tags"])
-    print(f"\n  SEO 점수: {seo['seo_score']}점")
+def make_publish_node(skip_naver: bool):
+    def publish_node(state: BlogState) -> BlogState:
+        from agents.publisher_agent import run_publisher
+        from agents.seo_agent import run_seo
+        seo = run_seo(state["title"], state["content"], state["tags"])
+        print(f"\n  SEO 점수: {seo['seo_score']}점")
 
-    print("\n[3/3] 발행 중...")
-    article_ids = [a["id"] for a in state.get("articles", []) if a.get("id")]
-    result = run_publisher(
-        title=state["title"],
-        content=state["content"],
-        tags=state["tags"],
-        article_ids=article_ids,
-    )
-    return {**state, "seo_score": seo["seo_score"], "published_urls": result}
+        print("\n[3/3] 발행 중...")
+        article_ids = [a["id"] for a in state.get("articles", []) if a.get("id")]
+        result = run_publisher(
+            title=state["title"],
+            content=state["content"],
+            tags=state["tags"],
+            article_ids=article_ids,
+            skip_naver=skip_naver,
+        )
+        return {**state, "seo_score": seo["seo_score"], "published_urls": result}
+    return publish_node
 
 
-def build_workflow() -> StateGraph:
+def build_workflow(skip_naver: bool = False) -> StateGraph:
     graph = StateGraph(BlogState)
 
     graph.add_node("research", research_node)
     graph.add_node("write", write_node)
-    graph.add_node("publish", publish_node)
+    graph.add_node("publish", make_publish_node(skip_naver))
 
     graph.set_entry_point("research")
     graph.add_edge("research", "write")
@@ -57,8 +59,8 @@ def build_workflow() -> StateGraph:
     return graph.compile()
 
 
-def run_pipeline() -> BlogState:
-    workflow = build_workflow()
+def run_pipeline(skip_naver: bool = False) -> BlogState:
+    workflow = build_workflow(skip_naver=skip_naver)
 
     initial_state: BlogState = {
         "articles": [],

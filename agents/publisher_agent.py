@@ -3,7 +3,7 @@ from tools.supabase_tools import mark_as_published
 from config.settings import settings
 
 
-def run_publisher(title: str, content: str, tags: list[str], article_ids: list[int] = None) -> dict:
+def run_publisher(title: str, content: str, tags: list[str], article_ids: list[int] = None, skip_naver: bool = False) -> dict:
     """
     dev.to, Hashnode, 네이버 블로그에 동시 발행한다.
     반환값: { devto: "...", hashnode: "...", naver: "..." }
@@ -24,7 +24,9 @@ def run_publisher(title: str, content: str, tags: list[str], article_ids: list[i
     })
 
     naver_result = "-"
-    if settings.naver_id and settings.naver_password and settings.naver_blog_id:
+    if skip_naver:
+        print(f"  [Naver] 스케줄 모드 - 건너뜀.")
+    elif settings.naver_id and settings.naver_password and settings.naver_blog_id:
         print(f"  [Naver] 발행 중... (브라우저 자동화)")
         from tools.naver_tools import post_to_naver_blog
         naver_result = post_to_naver_blog(title=title, content=content)
