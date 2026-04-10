@@ -15,6 +15,16 @@
 
 ---
 
+## 발행 블로그
+
+| 플랫폼 | 주소 |
+|---|---|
+| dev.to | https://dev.to/meene11 |
+| Hashnode | https://auto-multi-agent12.hashnode.dev |
+| 네이버 블로그 | https://blog.naver.com/mhophouse |
+
+---
+
 ## 시스템 아키텍처
 
 ```
@@ -22,7 +32,7 @@
   it-news-pipeline이 매일 수집한 IT 뉴스
         ↓
 [Research Agent]
-  새 기사 5개 조회 (발행 이력 자동 제외)
+  is_published=false 기사 5개 조회 (DB 레벨 중복 방지)
         ↓
 [Writer Agent]
   기사 키워드 추출 → 동적 제목 생성 → 마크다운 포스팅 생성
@@ -35,8 +45,8 @@
   ├─ Hashnode    GraphQL API 자동 발행
   └─ 네이버 블로그 Selenium 브라우저 자동화
         ↓
-[published_ids.json]
-  발행된 기사 ID 저장 → 다음 실행 때 중복 방지
+[Supabase - is_published=true 업데이트]
+  발행 완료 기사를 DB에 기록 → 다음 실행 때 자동 제외
 ```
 
 ---
@@ -125,6 +135,7 @@ cp .env.example .env
 # Supabase
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key   # is_published 업데이트용
 SUPABASE_TABLE=news_list         # 기본값
 ARTICLES_PER_RUN=5               # 1회 발행 기사 수
 
@@ -158,20 +169,24 @@ python test_naver.py
 
 ## 발행 플랫폼
 
-| 플랫폼 | 방식 | 특징 |
-|---|---|---|
-| dev.to | REST API | 완전 자동, 개발자 커뮤니티 |
-| Hashnode | GraphQL API | 완전 자동, 개발자 블로그 |
-| 네이버 블로그 | Selenium | 반자동 (캡챠 시 수동 처리) |
+| 플랫폼 | 주소 | 방식 | 특징 |
+|---|---|---|---|
+| dev.to | https://dev.to/meene11 | REST API | 완전 자동, 개발자 커뮤니티 |
+| Hashnode | https://auto-multi-agent12.hashnode.dev | GraphQL API | 완전 자동, 개발자 블로그 |
+| 네이버 블로그 | https://blog.naver.com/mhophouse | Selenium | 반자동 (캡챠 시 수동 처리) |
 
 ---
 
 ## 중복 발행 방지
 
+Supabase `news_list` 테이블의 `is_published` 컬럼으로 관리:
+
 ```
-1회 실행 → 기사 [1,2,3,4,5] 발행 → published_ids.json 저장
-2회 실행 → [1,2,3,4,5] 자동 제외 → 기사 [6,7,8,9,10] 발행
+1회 실행 → 기사 [1,2,3,4,5] 발행 → Supabase is_published=true 업데이트
+2회 실행 → is_published=false 기사만 조회 → 기사 [6,7,8,9,10] 발행
 ```
+
+파일 기반(`published_ids.json`) 대비 장점: 어느 환경(PC, 서버, 스케줄러)에서 실행해도 동일하게 중복 방지
 
 ---
 

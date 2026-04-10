@@ -1,31 +1,35 @@
-import json
 import httpx
-from pathlib import Path
 from config.settings import settings
-
-PUBLISHED_IDS_FILE = Path(__file__).parent.parent / "published_ids.json"
-
-
-def _load_published_ids() -> set[int]:
-    if PUBLISHED_IDS_FILE.exists():
-        return set(json.loads(PUBLISHED_IDS_FILE.read_text(encoding="utf-8")))
-    return set()
-
-
-def _save_published_ids(ids: set[int]) -> None:
-    PUBLISHED_IDS_FILE.write_text(json.dumps(sorted(ids)), encoding="utf-8")
 
 
 def mark_as_published(article_ids: list[int]) -> None:
-    """발행 완료된 기사 ID를 로컬 파일에 기록한다."""
-    ids = _load_published_ids()
-    ids.update(article_ids)
-    _save_published_ids(ids)
-    print(f"  발행 기록 저장 완료 ({len(article_ids)}개 추가, 누적 {len(ids)}개)")
+    """발행 완료된 기사의 is_published를 Supabase에서 true로 업데이트한다."""
+    if not article_ids:
+        return
+
+    service_key = settings.supabase_service_role_key
+    if not service_key:
+        raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY가 설정되지 않았습니다.")
+
+    url = f"{settings.supabase_url}/rest/v1/{settings.supabase_table}"
+    headers = {
+        "apikey": service_key,
+        "Authorization": f"Bearer {service_key}",
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal",
+    }
+    id_list = ",".join(str(i) for i in article_ids)
+    params = {"id": f"in.({id_list})"}
+
+    response = httpx.patch(url, headers=headers, params=params, json={"is_published": True}, timeout=15)
+    if response.status_code not in (200, 204):
+        raise RuntimeError(f"is_published 업데이트 실패 (status: {response.status_code}): {response.text}")
+
+    print(f"  Supabase is_published=true 업데이트 완료 ({len(article_ids)}개)")
 
 
 def fetch_articles_from_supabase(limit: int = 5) -> list[dict]:
-    """Supabase news_list 테이블에서 최근 기사를 가져온다."""
+    """Supabase news_list 테이블에서 미발행 기사만 가져온다."""
     if not settings.supabase_url or not settings.supabase_key:
         raise RuntimeError("SUPABASE_URL 또는 SUPABASE_KEY가 설정되지 않았습니다.")
 
@@ -38,29 +42,22 @@ def fetch_articles_from_supabase(limit: int = 5) -> list[dict]:
     params = {
         "select": "id,title,url,created_at,summary,sentiment,source",
         "summary": "not.is.null",
+        "is_published": "eq.false",
         "order": "created_at.desc",
         "limit": str(limit),
     }
-
-    # 이미 발행한 기사보다 넉넉하게 가져온 후 필터링
-    published_ids = _load_published_ids()
-    fetch_limit = limit + len(published_ids) if published_ids else limit
-    params["limit"] = str(min(fetch_limit, 100))  # 최대 100개
 
     response = httpx.get(url, headers=headers, params=params, timeout=15)
     if response.status_code != 200:
         raise RuntimeError(f"Supabase 조회 실패 (status: {response.status_code}): {response.text}")
 
-    all_articles = response.json()
+    articles = response.json()
 
-    # 이미 발행한 기사 제외
-    new_articles = [a for a in all_articles if a.get("id") not in published_ids]
-
-    if not new_articles:
+    if not articles:
         raise RuntimeError("발행할 새 기사가 없습니다. 모든 최근 기사가 이미 발행됐습니다.")
 
-    print(f"  전체 {len(all_articles)}개 중 기발행 {len(published_ids)}개 제외 -> {len(new_articles)}개 신규")
-    return new_articles[:limit]
+    print(f"  미발행 기사 {len(articles)}개 조회 완료")
+    return articles
 
 
 def format_articles_for_research(articles: list[dict]) -> str:

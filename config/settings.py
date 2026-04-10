@@ -8,6 +8,7 @@ class Settings(BaseSettings):
 
     supabase_url: str = ""
     supabase_key: str = ""
+    supabase_service_role_key: str = ""
     supabase_table: str = "news_list"
 
     naver_id: str = ""
