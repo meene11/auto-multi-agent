@@ -192,6 +192,34 @@ Supabase `news_list` 테이블의 `is_published` 컬럼으로 관리:
 
 ---
 
+## 자동 스케줄 발행 (GitHub Actions)
+
+별도 서버나 로컬 PC 없이 **매일 오전 10시** 자동 발행됩니다.
+
+```
+GitHub Actions 스케줄러 (매일 10:00 KST)
+  ↓
+python main.py --skip-naver
+  ↓
+dev.to + Hashnode 자동 발행
+```
+
+**GitHub Secrets 등록 필요** (Settings → Secrets → Actions):
+
+| Secret 키 | 용도 |
+|---|---|
+| `SUPABASE_URL` | Supabase 연결 |
+| `SUPABASE_KEY` | 기사 조회 |
+| `SUPABASE_SERVICE_ROLE_KEY` | is_published 업데이트 |
+| `DEVTO_API_KEY` | dev.to 발행 |
+| `HASHNODE_API_KEY` | Hashnode 발행 |
+| `HASHNODE_PUBLICATION_ID` | Hashnode 블로그 ID |
+
+> 네이버 블로그는 Selenium 브라우저 자동화가 필요해 GitHub Actions 환경에서 제외됩니다.  
+> 수동 실행이 필요할 때는 GitHub → Actions 탭 → **Run workflow** 버튼으로 즉시 실행 가능합니다.
+
+---
+
 ## 실행 비용
 
 | 항목 | 비용 |

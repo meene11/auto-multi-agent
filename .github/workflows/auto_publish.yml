@@ -2,13 +2,8 @@ name: Auto Blog Publish
 
 on:
   schedule:
-    - cron: '0 0 * * 1'   # 매주 월요일 오전 9시 KST (UTC 00:00)
+    - cron: '0 1 * * *'   # 매일 오전 10시 KST (UTC 01:00)
   workflow_dispatch:        # 수동 실행 가능
-    inputs:
-      repo_url:
-        description: '분석할 GitHub 레포지토리 URL (비워두면 기본값 사용)'
-        required: false
-        default: 'https://github.com/meene11/it-news-pipeline'
 
 jobs:
   publish:
@@ -26,16 +21,12 @@ jobs:
       - name: 패키지 설치
         run: pip install -r requirements.txt
 
-      - name: 멀티에이전트 파이프라인 실행
-        run: |
-          REPO_URL="${{ github.event.inputs.repo_url || 'https://github.com/meene11/it-news-pipeline' }}"
-          echo "대상 레포: $REPO_URL"
-          python main.py --repo "$REPO_URL"
+      - name: 멀티에이전트 파이프라인 실행 (네이버 제외)
+        run: python main.py --skip-naver
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           DEVTO_API_KEY: ${{ secrets.DEVTO_API_KEY }}
           HASHNODE_API_KEY: ${{ secrets.HASHNODE_API_KEY }}
           HASHNODE_PUBLICATION_ID: ${{ secrets.HASHNODE_PUBLICATION_ID }}
-          TARGET_REPO_URL: ${{ github.event.inputs.repo_url || 'https://github.com/meene11/it-news-pipeline' }}
-          SEO_SCORE_THRESHOLD: '70'
