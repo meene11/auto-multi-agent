@@ -1,4 +1,4 @@
-# auto-multi-agent
+# itnews-multi-agent
 
 > Supabase에 수집된 IT 뉴스를 AI 멀티에이전트가 자동으로 블로그 포스팅으로 변환하여 발행하는 자동화 시스템
 
@@ -67,7 +67,7 @@
 ## 디렉토리 구조
 
 ```
-auto-multi-agent/
+itnews-multi-agent/
 │
 ├── main.py                  # 진입점
 ├── test_naver.py            # 네이버 단독 테스트 (비용 없음)
@@ -103,8 +103,8 @@ auto-multi-agent/
 
 ```bash
 # 1. 클론
-git clone https://github.com/meene11/auto-multi-agent.git
-cd auto-multi-agent
+git clone https://github.com/meene11/itnews-multi-agent.git
+cd itnews-multi-agent
 
 # 2. 가상환경 생성 및 활성화
 python -m venv venv

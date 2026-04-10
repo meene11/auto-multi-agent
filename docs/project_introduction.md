@@ -56,7 +56,7 @@
                            │  python main.py 실행!
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                  auto-multi-agent (이 프로젝트)               │
+│                  itnews-multi-agent (이 프로젝트)               │
 │                                                             │
 │  STEP 1 ─ Research Agent                                    │
 │    └─ 새 기사 5개 가져오기 (이미 발행한 것 자동 제외)             │
@@ -215,7 +215,7 @@ python main.py 실행
 ## 📁 프로젝트 파일 구조
 
 ```
-auto-multi-agent/
+itnews-multi-agent/
 │
 ├── 🚀 main.py               ← 여기서 시작! python main.py
 ├── 🧪 test_naver.py         ← 네이버만 테스트 (무료)
@@ -258,7 +258,7 @@ python main.py
 
 ```
 ============================================================
-  auto-multi-agent - IT 뉴스 자동 블로그 발행
+  itnews-multi-agent - IT 뉴스 자동 블로그 발행
   Supabase: https://xxxx.supabase.co
   기사 수 : 5개
 ============================================================
@@ -280,7 +280,7 @@ python main.py
 ============================================================
   제목    : [IT 뉴스 요약] 2026년 04월 09일 주요 기사 5선
   dev.to  : https://dev.to/meene11/...
-  Hashnode: https://auto-multi-agent12.hashnode.dev/...
+  Hashnode: https://itnews-multi-agent12.hashnode.dev/...
   Naver   : https://blog.naver.com/mhophouse
 ```
 

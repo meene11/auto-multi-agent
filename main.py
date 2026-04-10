@@ -8,7 +8,7 @@ def main():
     args = parser.parse_args()
 
     print(f"\n{'='*60}")
-    print(f"  auto-multi-agent - IT 뉴스 자동 블로그 발행")
+    print(f"  itnews-multi-agent - IT 뉴스 자동 블로그 발행")
     print(f"  Supabase: {settings.supabase_url}")
     print(f"  기사 수 : {settings.articles_per_run}개")
     print(f"  Naver   : {'건너뜀' if args.skip_naver else '발행'}")
