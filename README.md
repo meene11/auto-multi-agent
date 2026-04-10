@@ -15,16 +15,6 @@
 
 ---
 
-## 발행 블로그
-
-| 플랫폼 | 주소 |
-|---|---|
-| dev.to | https://dev.to/meene11 |
-| Hashnode | https://auto-multi-agent12.hashnode.dev |
-| 네이버 블로그 | https://blog.naver.com/mhophouse |
-
----
-
 ## 시스템 아키텍처
 
 ```
@@ -57,7 +47,7 @@
 |---|---|---|
 | Research Agent | Supabase에서 미발행 기사 조회 | httpx REST API |
 | Writer Agent | 기사 → 블로그 포스팅 변환 | Python 템플릿 (LLM 없음) |
-| SEO Agent | 기본 SEO 품질 체크 | Python 코드 |
+| SEO Agent | 제목 길이·본문 길이·태그 수 체크 + GEO(AI 검색 최적화) 적용 | Python 코드 |
 | Publisher Agent | 3개 플랫폼 동시 발행 | API + Selenium |
 
 ---
